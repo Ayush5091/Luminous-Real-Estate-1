@@ -9,7 +9,6 @@ from config import settings
 from utils.logger import log
 from storage.db import init_db
 from storage.redis_client import get_redis, build_macro_snapshot
-from storage.qdrant_client import QdrantManager
 from websocket.ws_manager import manager
 from websocket.ws_handler import websocket_endpoint
 from scheduler.scheduler_setup import create_scheduler
@@ -25,10 +24,7 @@ async def lifespan(app: FastAPI):
   # 1. Init DB (create tables if missing)
   await init_db()
   
-  # 2. Ensure Qdrant collection exists
-  await QdrantManager().ensure_collection()
-  
-  # 3. Start Redis → WebSocket subscriber as background task
+  # 2. Start Redis → WebSocket subscriber as background task
   asyncio.create_task(manager.start_redis_subscriber())
   
   # 4. Start scheduler

@@ -7,7 +7,6 @@ from sqlalchemy import text
 from config import settings
 from storage.db import AsyncSessionLocal
 from storage.redis_client import get_redis
-from storage.qdrant_client import QdrantManager
 
 log = structlog.get_logger()
 
@@ -26,7 +25,6 @@ async def health_detail():
         "env": settings.APP_ENV,
         "db": "ok",
         "redis": "ok",
-        "qdrant": "ok",
         "checks": {},
     }
 
@@ -48,16 +46,7 @@ async def health_detail():
         results["checks"]["redis"] = str(e)
         log.error("health_redis_failed", error=str(e))
 
-    # Qdrant check
-    try:
-        qm = QdrantManager()
-        await asyncio.wait_for(qm.client.get_collections(), timeout=3.0)
-    except Exception as e:
-        results["qdrant"] = "error"
-        results["checks"]["qdrant"] = str(e)
-        log.error("health_qdrant_failed", error=str(e))
-
-    if any(v == "error" for v in [results["db"], results["redis"], results["qdrant"]]):
+    if any(v == "error" for v in [results["db"], results["redis"]]):
         results["status"] = "degraded"
         return JSONResponse(status_code=503, content=results)
 

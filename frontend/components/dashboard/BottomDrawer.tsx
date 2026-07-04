@@ -1,11 +1,15 @@
 'use client'
 
-import React from 'react'
-import { motion } from 'framer-motion'
+import React, { useState } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useStore } from '@/store/useStore'
+import RiskRadar from './RiskRadar'
+import { ConfidenceGauge, MarketQuadrant } from './MarketCharts'
+import { ChevronUp, ChevronDown, X } from 'lucide-react'
 
 const BottomDrawer = () => {
   const { agentTranscript, macroSnapshot, backendStatus, bubbleFlags, activeRegion } = useStore()
+  const [isExpanded, setIsExpanded] = useState(false)
 
   // Find the bubble flag matching the active region
   const regionFlag = bubbleFlags.find(
@@ -56,11 +60,8 @@ const BottomDrawer = () => {
     : backendStatus === 'loading' ? 'Syncing...'
     : 'Offline'
 
-  // MOCK EXAMPLE: If the user is on Ahmedabad, force a low bubble score to show "Excellent" stability
-  let displayScore = regionScore
-  if (activeRegion.toLowerCase() === 'ahmedabad' && (displayScore == null || displayScore > 25)) {
-    displayScore = 18 // "Excellent" Example
-  }
+  // Use the actual score from the engine; no more mocks
+  const displayScore = regionScore
 
   const stabilityLabelFinal = displayScore == null ? '—'
     : displayScore < 30 ? 'Excellent'
@@ -72,8 +73,16 @@ const BottomDrawer = () => {
     : displayScore < 60 ? 'text-amber-600'
     : 'text-red-500'
 
+  // Derive Yield proxy from PR Ratio (1/PR * 100) scaled for visibility
+  const yieldProxy = prRatio ? Math.min(10, (1 / prRatio) * 100 * 1.5) : 3.5
+
   return (
-    <footer className="fixed bottom-8 left-1/2 -translate-x-1/2 w-[calc(100%-64px)] max-w-6xl h-[100px] hover:h-[260px] transition-all duration-600 bg-white/90 backdrop-blur-3xl z-40 flex flex-col px-10 py-6 rounded-[32px] shadow-[0_20px_80px_rgba(0,0,0,0.15)] border border-black/5 pointer-events-auto group overflow-hidden">
+    <motion.footer 
+      initial={false}
+      animate={{ height: isExpanded ? 540 : 100 }}
+      transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+      className="fixed bottom-8 left-1/2 -translate-x-1/2 w-[calc(100%-64px)] max-w-6xl bg-white/90 backdrop-blur-3xl z-40 flex flex-col px-10 py-6 rounded-[32px] shadow-[0_20px_80px_rgba(0,0,0,0.15)] border border-black/5 pointer-events-auto overflow-hidden"
+    >
       {/* Top bar — always visible */}
       <div className="flex items-center justify-between border-b border-black/5 pb-4 mb-5">
         <div className="flex items-center gap-10">
@@ -95,8 +104,8 @@ const BottomDrawer = () => {
 
           <div className="flex flex-col">
             <span className="text-[9px] font-bold tracking-[0.1em] text-slate-400 uppercase">Official RESIDEX</span>
-            <span className="text-[14px] mt-0.5 font-extrabold text-black tracking-tighter">
-              {residex != null ? residex.toFixed(1) : '—'}
+            <span className={`text-[14px] mt-0.5 font-extrabold tracking-tighter ${residex == null ? 'text-amber-500 animate-pulse' : 'text-black'}`}>
+              {residex != null ? residex.toFixed(1) : 'Syncing...'}
             </span>
           </div>
 
@@ -110,52 +119,109 @@ const BottomDrawer = () => {
               : 'bg-red-400'
             }`} />
             <span className="text-[9px] font-bold tracking-[0.1em] text-slate-400 uppercase">
-              {backendStatus === 'connected' ? 'Node Online' : backendStatus === 'loading' ? 'Syncing...' : 'Node Offline'}
+              {backendStatus === 'connected' ? 'Agent Online' : backendStatus === 'loading' ? 'Syncing...' : 'Agent Offline'}
             </span>
           </div>
         </div>
 
-        <div className="flex gap-4">
-          <div className="px-4 py-1.5 bg-[#0f4d2310] text-[#0f4d23] rounded-full text-[10px] font-bold tracking-wider uppercase">Live Metrics</div>
+        <div className="flex gap-4 items-center">
+          <button 
+            onClick={() => setIsExpanded(!isExpanded)}
+            className={`flex items-center gap-2 px-5 py-2 rounded-full text-[10px] font-bold tracking-wider uppercase transition-all ${
+              isExpanded 
+              ? 'bg-[#0f4d23] text-white shadow-lg' 
+              : 'bg-[#0f4d2310] text-[#0f4d23] hover:bg-[#0f4d2320]'
+            }`}
+          >
+            {isExpanded ? 'Hide Analytics' : 'Live Metrics'}
+            {isExpanded ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
+          </button>
         </div>
       </div>
 
-      {/* Expanded content — visible on hover (Cleaned Data View) */}
-      <motion.div 
-        className="opacity-0 group-hover:opacity-100 transition-opacity duration-500 grid grid-cols-2 gap-12"
-      >
-        {/* Column 1: Region Risk Metrics */}
-        <div className="space-y-4 flex flex-col h-full">
-          <h5 className="text-[10px] font-extrabold text-slate-800 uppercase tracking-[0.1em]">Targeted Risk Indicators</h5>
-          <div className="grid grid-cols-4 gap-4">
-            <MiniStat label="P/I Ratio" value={piRatio != null ? `${piRatio.toFixed(1)}x` : '—'} />
-            <MiniStat label="P/R Ratio" value={prRatio != null ? `${prRatio.toFixed(1)}x` : '—'} />
-            <MiniStat label="Affordability" value={affordability != null ? `${affordability.toFixed(1)}%` : '—'} />
-            <MiniStat label="Cap Spread" value={capSpread != null ? `${capSpread.toFixed(2)}%` : '—'} />
-          </div>
-        </div>
+      {/* Expanded content area with scrolling */}
+      <div className={`flex-1 overflow-y-auto pr-2 custom-scrollbar transition-opacity duration-300 ${isExpanded ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+        <AnimatePresence>
+          {isExpanded && (
+            <motion.div 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 10 }}
+              transition={{ duration: 0.2 }}
+              className="flex flex-row gap-6 pb-6 h-full items-stretch"
+            >
+              {/* Column 1: Targeted Risk Analysis */}
+              <div className="flex-1 bg-slate-50/40 rounded-[24px] border border-black/5 p-5 flex flex-col relative overflow-hidden group/container min-h-[380px]">
+                 <h5 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Targeted Risk Analysis</h5>
+                 <div className="flex flex-row items-center flex-1">
+                   <div className="flex-1 h-full min-w-[240px]">
+                     <RiskRadar 
+                       data={{ piRatio, prRatio, affordability, capSpread }}
+                       score={displayScore}
+                     />
+                   </div>
+                   
+                   {/* Scoreboard Right */}
+                   <div className="w-[140px] pl-6 border-l border-black/5 flex flex-col gap-4">
+                      {/* ... Metric entries ... */}
+                      <div className="flex flex-col">
+                        <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">P/I Ratio</span>
+                        <span className="text-sm font-black text-slate-800">{piRatio?.toFixed(1) || '—'}</span>
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">P/R Ratio</span>
+                        <span className="text-sm font-black text-slate-800">{prRatio?.toFixed(1) || '—'}</span>
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Affordability</span>
+                        <span className="text-sm font-black text-slate-800">{affordability ? `${(affordability * 100).toFixed(0)}%` : '—'}</span>
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Cap Spread</span>
+                        <span className="text-sm font-black text-slate-800">{capSpread ? `${(capSpread * 100).toFixed(1)}%` : '—'}</span>
+                      </div>
+                   </div>
+                 </div>
+              </div>
 
-        {/* Column 2: Stability Performance */}
-        <div className="grid grid-cols-2 gap-6 h-fit self-center">
-          <div className="p-5 bg-slate-50/50 rounded-2xl border border-slate-100 shadow-sm flex flex-col justify-center">
-            <span className="text-[9px] text-slate-500 font-bold uppercase tracking-[0.1em]">Stability State</span>
-            <div className={`text-xl font-black mt-1 ${stabilityColorFinal} tracking-tighter`}>{stabilityLabelFinal}</div>
-          </div>
-          <div className="p-5 bg-slate-50/50 rounded-2xl border border-slate-100 shadow-sm flex flex-col justify-center">
-            <span className="text-[9px] text-slate-500 font-bold uppercase tracking-[0.1em]">Engine Confidence</span>
-            <div className="text-xl font-black text-slate-800 mt-1 tracking-tighter">{confidenceLabel}</div>
-          </div>
-        </div>
-      </motion.div>
-    </footer>
+              {/* Column 2: Market Position Index */}
+              <div className="flex-1 bg-slate-50/40 rounded-[24px] border border-black/5 p-5 flex flex-col relative overflow-hidden group/container min-h-[380px]">
+                 <h5 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Market Position Index</h5>
+                 <div className="flex flex-row items-center flex-1">
+                   <div className="flex-1 h-full min-w-[240px]">
+                     <MarketQuadrant 
+                       activeCity={activeRegion}
+                       activeRisk={displayScore}
+                       activeYield={yieldProxy}
+                     />
+                   </div>
+
+                   {/* Scoreboard Right */}
+                   <div className="w-[140px] pl-6 border-l border-black/5 flex flex-col gap-4">
+                      <div className="flex flex-col">
+                        <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Local Yield</span>
+                        <span className="text-sm font-black text-[#0f4d23]">{yieldProxy.toFixed(2)}%</span>
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Risk Index</span>
+                        <span className={`text-sm font-black ${stabilityColorFinal}`}>{displayScore ?? '—'}/100</span>
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Market Status</span>
+                        <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-black/5 w-fit ${stabilityColorFinal}`}>
+                          {stabilityLabelFinal}
+                        </span>
+                      </div>
+                   </div>
+                 </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </motion.footer>
   )
 }
 
-const MiniStat = ({ label, value }: { label: string; value: string }) => (
-  <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 shadow-sm transition-all hover:bg-white hover:border-[#0f4d2320]">
-    <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">{label}</span>
-    <div className="text-[14px] font-bold text-black mt-1 leading-none">{value}</div>
-  </div>
-)
 
 export default BottomDrawer

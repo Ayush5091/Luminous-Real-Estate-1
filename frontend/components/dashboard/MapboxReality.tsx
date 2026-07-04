@@ -4,7 +4,9 @@ import React, { useRef, useEffect, useState } from 'react'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import * as THREE from 'three'
-import { useStore } from '@/store/useStore'
+import { useStore, ZoneData } from '@/store/useStore'
+import { findZoneByCoordinates } from '@/lib/zoneData'
+import { ASSET_COORDS } from '@/components/LiveDataLoop'
 
 const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || ''
 
@@ -26,7 +28,7 @@ const MapboxReality = () => {
   const mapContainer = useRef<HTMLDivElement>(null)
   const map = useRef<mapboxgl.Map | null>(null)
   const [mapLoaded, setMapLoaded] = useState(false)
-  const { valuationMap, mapTarget, activeRegion, bubbleFlags, overrideScore } = useStore()
+  const { valuationMap, mapTarget, activeRegion, bubbleFlags, overrideScore, setSelectedZone, selectedZone } = useStore()
 
   const sceneStateRef = useRef({
     lngLat: BKC_CENTER as [number, number],
@@ -451,6 +453,49 @@ const MapboxReality = () => {
 
       m.addLayer(bubbleFireLayer, '3d-buildings')
 
+      // --- ZONE HIGHLIGHT LAYER ---
+      m.addSource('selected-zone', {
+        type: 'geojson',
+        data: { type: 'FeatureCollection', features: [] }
+      })
+
+      m.addLayer({
+        id: 'zone-highlight-fill',
+        type: 'fill',
+        source: 'selected-zone',
+        paint: {
+          'fill-color': '#0f4d23',
+          'fill-opacity': 0.2,
+        }
+      })
+
+      m.addLayer({
+        id: 'zone-highlight-outline',
+        type: 'line',
+        source: 'selected-zone',
+        paint: {
+          'line-color': '#4dbf73',
+          'line-width': 3,
+          'line-dasharray': [2, 1],
+        }
+      })
+
+      // Handle map clicks for zone selection
+      m.on('click', (e) => {
+        const zone = findZoneByCoordinates(e.lngLat.lng, e.lngLat.lat, activeRegion)
+        setSelectedZone(zone)
+        
+        if (zone) {
+          // Add a subtle fly-to for better focus
+          m.flyTo({
+            center: e.lngLat,
+            zoom: Math.max(m.getZoom(), 16),
+            duration: 1500,
+            essential: true
+          })
+        }
+      })
+
       setMapLoaded(true)
     })
 
@@ -463,60 +508,66 @@ const MapboxReality = () => {
     }
   }, [])
 
-  // Add data-driven markers for our assets - Matcha themed
+  // Persistent marker refs — update colors in-place instead of destroy/recreate
+  const markerElemsRef = useRef<Record<string, HTMLDivElement>>({})
+
+  // Add data-driven markers for all 8 tracked cities
   useEffect(() => {
     if (!map.current || !mapLoaded) return
 
-    const assetLocations: Record<string, [number, number]> = {
-      'MUM-BKC': [72.8656, 19.0658],
-      'DEL-CP': [77.2090, 28.6139],
-      'BLR-WF': [77.5946, 12.9716],
-      'MAA-OMR': [80.2707, 13.0827],
-    }
-
-    const existingMarkers = document.querySelectorAll('.mapbox-risk-marker')
-    existingMarkers.forEach(el => el.remove())
-
-    Object.entries(assetLocations).forEach(([id, coords]) => {
+    Object.entries(ASSET_COORDS).forEach(([id, coords]) => {
       const data = valuationMap[id]
-      if (!data) return
 
-      const risk = data.risk_score
-      // Matcha Risk Scale: Good (Sage), Warning (Yellow-Matcha), High (Coral)
-      const color = risk > 7 ? '#d7383b' : risk > 4 ? '#E4B461' : '#0f4d23'
+      // risk_score is stored 0-10. >7 = red, >4 = yellow, <=4 = green
+      const risk = data?.risk_score ?? 5
+      const color = risk > 7 ? '#d7383b' : risk > 4 ? '#E4B461' : '#4dbf73'
+      const riskLabel = (risk * 10).toFixed(0) // display as 0-100
 
+      // If marker already exists, just update its color
+      if (markerElemsRef.current[id]) {
+        markerElemsRef.current[id].style.background = color
+        return
+      }
+
+      // First time: create marker element
       const el = document.createElement('div')
       el.className = 'mapbox-risk-marker'
       el.style.cssText = `
-        width: 12px;
-        height: 12px;
+        width: 14px;
+        height: 14px;
         border-radius: 50%;
         background: ${color};
-        border: 2px solid white;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        border: 2px solid rgba(255,255,255,0.9);
+        box-shadow: 0 0 12px ${color}88;
         cursor: pointer;
         animation: pulse-marker 2s infinite;
+        transition: background 0.5s ease;
       `
+      markerElemsRef.current[id] = el
 
-      const popup = new mapboxgl.Popup({ offset: 25, className: 'matcha-popup' }).setHTML(`
-        <div style="background: rgba(255,255,255,0.95); color: #1A1D1A; padding: 14px 20px; border-radius: 16px; border: 1px solid rgba(0,0,0,0.05); font-family: 'Space Grotesk', sans-serif; backdrop-filter: blur(16px); box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
-          <div style="font-size: 15px; font-weight: 800; margin-bottom: 4px; letter-spacing: -0.03em;">${id}</div>
-          <div style="font-size: 9px; color: #888; text-transform: uppercase; font-weight: 700; letter-spacing: 0.15em; margin-bottom: 12px;">Primary Asset Hub</div>
-          <div style="display: flex; gap: 24px; border-top: 1px solid rgba(0,0,0,0.05); pt: 8px;">
-            <div>
-              <div style="font-size: 8px; color: #999; text-transform: uppercase; font-weight: 700;">Risk</div>
-              <div style="font-size: 13px; color: ${color}; font-weight: 800;">${risk.toFixed(2)}</div>
-            </div>
-            <div>
-              <div style="font-size: 8px; color: #999; text-transform: uppercase; font-weight: 700;">Price</div>
-              <div style="font-size: 13px; color: #000; font-weight: 800;">₹${(data.price_index / 100000).toFixed(1)}L</div>
+      // Build popup that reads LIVE data from store at click time
+      const popup = new mapboxgl.Popup({ offset: 25, className: 'matcha-popup', closeButton: false })
+      popup.on('open', () => {
+        // Re-read the store at click time so popup always shows current data
+        const live = useStore.getState().valuationMap[id]
+        const liveRisk = live?.risk_score ?? 5
+        const liveColor = liveRisk > 7 ? '#d7383b' : liveRisk > 4 ? '#E4B461' : '#4dbf73'
+        const liveScore = (liveRisk * 10).toFixed(0)
+        const livePir = live?.pi_ratio?.toFixed(1) ?? 'N/A'
+        const livePrice = live?.price_index ? `₹${(live.price_index / 100000).toFixed(1)}L` : 'N/A'
+        popup.setHTML(`
+          <div style="background: #0d1a12; color: #e8f5e9; padding: 14px 18px; border-radius: 12px; border: 1px solid #2d7a48; font-family: 'Space Grotesk', sans-serif; min-width: 180px; box-shadow: 0 8px 32px rgba(0,0,0,0.6);">
+            <div style="font-size: 14px; font-weight: 800; margin-bottom: 2px; color: #fff;">${id}</div>
+            <div style="font-size: 9px; color: ${liveColor}; text-transform: uppercase; font-weight: 700; letter-spacing: 0.12em; margin-bottom: 10px;">Bubble Score: ${liveScore}/100</div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; border-top: 1px solid #1a3a24; padding-top: 8px;">
+              <div><div style="font-size: 8px; color: #6abf88; text-transform: uppercase; font-weight: 700;">Risk</div><div style="font-size: 13px; color: ${liveColor}; font-weight: 800;">${liveScore}/100</div></div>
+              <div><div style="font-size: 8px; color: #6abf88; text-transform: uppercase; font-weight: 700;">PI Ratio</div><div style="font-size: 13px; color: #fff; font-weight: 800;">${livePir}x</div></div>
+              <div style="grid-column: 1/-1;"><div style="font-size: 8px; color: #6abf88; text-transform: uppercase; font-weight: 700;">Est. Price</div><div style="font-size: 13px; color: #fff; font-weight: 800;">${livePrice}</div></div>
             </div>
           </div>
-        </div>
-      `)
+        `)
+      })
 
-      const markerBtn = document.createElement('div')
-      // Mapbox needs the element to trigger interaction
       el.addEventListener('click', () => {
         useStore.getState().setSelectedAssetId(id)
       })
@@ -622,6 +673,30 @@ const MapboxReality = () => {
       })
     }
   }, [bubbleFlags, mapLoaded])
+
+  // Update Zone Highlight data when selectedZone changes
+  useEffect(() => {
+    if (!map.current || !mapLoaded) return
+
+    const source = map.current.getSource('selected-zone') as mapboxgl.GeoJSONSource
+    if (source) {
+      if (selectedZone?.boundary) {
+        source.setData({
+          type: 'FeatureCollection',
+          features: [{
+            type: 'Feature',
+            geometry: selectedZone.boundary,
+            properties: {}
+          }]
+        })
+      } else {
+        source.setData({
+          type: 'FeatureCollection',
+          features: []
+        })
+      }
+    }
+  }, [selectedZone, mapLoaded])
 
   // --- Fly to target location when mapTarget changes ---
   useEffect(() => {

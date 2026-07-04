@@ -6,7 +6,9 @@ from typing import Optional
 
 from agents.state import AgentState
 from llm.router import LLMRouter
-from storage.qdrant_client import QdrantManager
+from storage.db import AsyncSessionLocal
+from storage.models.bubble_flags import BubbleFlag
+from sqlalchemy import select
 from calculations.monte_carlo import MonteCarloEngine
 
 log = structlog.get_logger()
@@ -71,15 +73,33 @@ async def query_node(state: AgentState) -> dict:
             updates["query_response"] = response
 
         else:
-            log.info("query_intent_rag")
-            # Traditional RAG Fallback
-            qdrant = QdrantManager()
-            results = await qdrant.search_documents(query_text, limit=3)
-            context_str = "\n".join([r.payload.get("text", "") for r in results if r.payload])
+            log.info("query_intent_rag_sql_fallback")
+            # Query active bubble flags directly from PostgreSQL
+            async with AsyncSessionLocal() as session:
+                result = await session.execute(
+                    select(BubbleFlag).where(BubbleFlag.is_active == True).order_by(BubbleFlag.created_at.desc())
+                )
+                seen_regions = set()
+                rows = result.scalars().all()
+                db_context_list = []
+                for flag in rows:
+                    if flag.region in seen_regions:
+                        continue
+                    seen_regions.add(flag.region)
+                    
+                    pir_val = f"{flag.price_income_ratio:.1f}x" if flag.price_income_ratio is not None else "N/A"
+                    prr_val = f"{flag.price_rent_ratio:.1f}x" if flag.price_rent_ratio is not None else "N/A"
+                    
+                    db_context_list.append(
+                        f"- Region: {flag.region}. Overall Bubble Score: {flag.overall_score}/100. "
+                        f"Price-to-Income Ratio: {pir_val}. Price-to-Rent Ratio: {prr_val}. "
+                        f"Narrative: {flag.narrative}"
+                    )
+                context_str = "\n".join(db_context_list)
 
             system_prompt = (
                 "You are a real estate expert for the Indian market. "
-                "Answer the user query using the provided context. "
+                "Answer the user query using the provided context of current regional bubble metrics. "
                 "STRICT LIMIT: Your response must be between 2 to 6 lines long. Be direct and punchy."
             )
             
@@ -89,7 +109,7 @@ async def query_node(state: AgentState) -> dict:
             if state.get("valuation_result"): internal_context += f"\nValuation: {state['valuation_result']}"
             if state.get("risk_score"): internal_context += f"\nRisk Score: {state['risk_score']}"
 
-            user_prompt = f"Context: {context_str}\n\nInternal Engine Data: {internal_context}\n\nUser Question: {query_text}"
+            user_prompt = f"Context (Active Regional Bubble Flags):\n{context_str}\n\nInternal Engine Data: {internal_context}\n\nUser Question: {query_text}"
             
             response = await llm_router.complete(system_prompt, user_prompt)
             updates["query_response"] = response

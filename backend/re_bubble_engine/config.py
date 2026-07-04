@@ -5,8 +5,6 @@ from typing import Optional
 class Settings(BaseSettings):
     DATABASE_URL: str
     REDIS_URL: str
-    QDRANT_URL: str
-    QDRANT_API_KEY: str
     FRED_API_KEY: Optional[str] = None
     GEMINI_API_KEY: str
     GROQ_API_KEY: str

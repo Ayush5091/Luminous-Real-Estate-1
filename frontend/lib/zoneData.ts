@@ -24,6 +24,28 @@ export const DEMO_ZONES: ZoneData[] = [
     }
   },
   {
+    id: 'bangalore-vittal-mallya',
+    name: 'Vittal Mallya Elite',
+    region: 'Bangalore',
+    risk_score: 45,
+    yield_pct: 3.1,
+    appreciation_pct: 6.8,
+    occupancy_pct: 98,
+    recommendation: 'HOLD',
+    details: 'Ultra-premium CBD pocket near JW Marriott and UB City.',
+    narrative: 'The Kasturba Road / Vittal Mallya corridor represents Bangalore\'s most resilient asset class. While rental yields are low (3.1%), the vacancy rate is virtually zero. JW Marriott vicinity remains an institutional gold standard for capital preservation.',
+    boundary: {
+      type: 'Polygon',
+      coordinates: [[
+        [77.5900, 12.9730],
+        [77.5960, 12.9730],
+        [77.5960, 12.9690],
+        [77.5900, 12.9690],
+        [77.5900, 12.9730]
+      ]]
+    }
+  },
+  {
     id: 'bangalore-whitefield',
     name: 'Whitefield IT Corridor',
     region: 'Bangalore',
@@ -32,8 +54,8 @@ export const DEMO_ZONES: ZoneData[] = [
     appreciation_pct: 12.0,
     occupancy_pct: 88,
     recommendation: 'SELL',
-    details: 'Overlapping supply pipeline and infrastructural stress are driving risk.',
-    narrative: 'Whitefield is showing classic late-cycle symptoms. Capital values have outpaced rental growth by 35% in the last 24 months. With 12M sqft of new supply hitting the market, a price correction is likely in the next 18 months.',
+    details: 'Overlapping supply pipeline and infrastructural stress.',
+    narrative: 'Whitefield is showing late-cycle symptoms. Capital values outpaced rental growth by 35% in 24 months. With 12M sqft of new supply, a correction is likely.',
     boundary: {
       type: 'Polygon',
       coordinates: [[
@@ -42,6 +64,50 @@ export const DEMO_ZONES: ZoneData[] = [
         [77.7600, 12.9600],
         [77.7400, 12.9600],
         [77.7400, 12.9800]
+      ]]
+    }
+  },
+  {
+    id: 'chennai-omr',
+    name: 'OMR Tech Belt',
+    region: 'Chennai',
+    risk_score: 52,
+    yield_pct: 5.1,
+    appreciation_pct: 9.2,
+    occupancy_pct: 85,
+    recommendation: 'BUY',
+    details: 'IT corridor spanning from Tidel Park to Sholinganallur.',
+    narrative: 'The Old Mahabalipuram Road (OMR) continues to be Chennai\'s growth engine. Consistent absorption by IT/ITES firms keeps yields healthy. Current valuations are attractively positioned for mid-to-high entry.',
+    boundary: {
+      type: 'Polygon',
+      coordinates: [[
+        [80.2400, 12.9650],
+        [80.2550, 12.9650],
+        [80.2550, 12.9450],
+        [80.2400, 12.9450],
+        [80.2400, 12.9650]
+      ]]
+    }
+  },
+  {
+    id: 'chennai-anna-nagar',
+    name: 'Anna Nagar West',
+    region: 'Chennai',
+    risk_score: 30,
+    yield_pct: 3.8,
+    appreciation_pct: 7.5,
+    occupancy_pct: 95,
+    recommendation: 'BUY',
+    details: 'Premium residential hub with high owner-occupancy.',
+    narrative: 'Anna Nagar remains a safe harbor for residential investors in Chennai. Mature infrastructure and limited new land supply ensure steady capital appreciation and low downside risk.',
+    boundary: {
+      type: 'Polygon',
+      coordinates: [[
+        [80.2050, 13.0950],
+        [80.2250, 13.0950],
+        [80.2250, 13.0750],
+        [80.2050, 13.0750],
+        [80.2050, 13.0950]
       ]]
     }
   },
@@ -55,7 +121,7 @@ export const DEMO_ZONES: ZoneData[] = [
     occupancy_pct: 76,
     recommendation: 'BUY',
     details: 'Early stage high-growth zone with SEZ tax benefits.',
-    narrative: 'GIFT City represents the most stable and high-potential zone in the engine\'s current index. Tax incentives and regulatory easing are attracting global capital. Valuations are still 40% below historical peak potential. Strong Buy for long-term yields.',
+    narrative: 'GIFT City represents the most stable and high-potential zone in the engine\'s current index. Tax incentives and regulatory easing are attracting global capital. Valuations are still 40% below historical peak potential.',
     boundary: {
       type: 'Polygon',
       coordinates: [[

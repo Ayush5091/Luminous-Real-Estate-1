@@ -87,7 +87,7 @@ export interface HealthDetail {
   env: string
   db: string
   redis: string
-  qdrant: string
+  qdrant?: string
   checks: Record<string, string>
 }
 

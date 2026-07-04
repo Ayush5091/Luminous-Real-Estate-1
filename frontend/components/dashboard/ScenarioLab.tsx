@@ -120,10 +120,10 @@ const ScenarioLab = () => {
         startY: finalY + 5,
         head: [['Confidence Level', 'Projected Value']],
         body: [
-          ['Median (P50)', fmtInr(result.p50)],
-          ['Lower Bound (P5)', fmtInr(result.p5)],
-          ['Upper Bound (P95)', fmtInr(result.p95)],
-          ['Prob of Impairment', `${(result.prob_below_current * 100).toFixed(2)}%`],
+          ['Base Case (Expected Value)', fmtInr(result.p50)],
+          ['Worst Case (Market Correction)', fmtInr(result.p5)],
+          ['Best Case (Optimistic Growth)', fmtInr(result.p95)],
+          ['Investment Safety Margin', `${((1 - result.prob_below_current) * 100).toFixed(2)}%`],
         ],
         theme: 'grid',
         headStyles: { fillColor: [15, 77, 35] }
@@ -258,12 +258,12 @@ const ScenarioLab = () => {
 
                   <div className="grid grid-cols-2 gap-4">
                     <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                      <p className="text-[8px] font-bold text-slate-400 uppercase mb-1">P50 Median Value</p>
+                      <p className="text-[8px] font-bold text-slate-400 uppercase mb-1">Base Case Scenario</p>
                       <p className="text-sm font-bold text-[#0f4d23]">{fmtInr(result.p50)}</p>
                     </div>
                     <div className={`p-4 rounded-2xl border ${result.prob_below_current > 0.4 ? 'bg-red-50 border-red-100' : 'bg-emerald-50 border-emerald-100'}`}>
-                      <p className={`text-[8px] font-bold uppercase mb-1 ${result.prob_below_current > 0.4 ? 'text-red-400' : 'text-emerald-400'}`}>Prob of Loss</p>
-                      <p className={`text-sm font-bold ${result.prob_below_current > 0.4 ? 'text-red-600' : 'text-emerald-600'}`}>{(result.prob_below_current * 100).toFixed(1)}%</p>
+                      <p className={`text-[8px] font-bold uppercase mb-1 ${result.prob_below_current > 0.4 ? 'text-red-400' : 'text-emerald-400'}`}>Investment Safety</p>
+                      <p className={`text-sm font-bold ${result.prob_below_current > 0.4 ? 'text-red-600' : 'text-emerald-600'}`}>{((1 - result.prob_below_current) * 100).toFixed(1)}%</p>
                     </div>
                   </div>
 

@@ -10,6 +10,7 @@ import PropertyPanel from '@/components/dashboard/PropertyPanel'
 import ScenarioLab from '@/components/dashboard/ScenarioLab'
 import PropagationHUD from '@/components/dashboard/PropagationHUD'
 import AIChatSidebar from '@/components/dashboard/AIChatSidebar'
+import ZoneInsights from '@/components/dashboard/ZoneInsights'
 
 const HUD = () => {
   const { 
@@ -98,6 +99,9 @@ const HUD = () => {
 
       {/* NEW AI CHAT SIDEBAR (LEFT) */}
       <AIChatSidebar />
+
+      {/* NEW ZONE INSIGHTS SIDEBAR (RIGHT) */}
+      <ZoneInsights />
 
       {/* BOTTOM DRAWER (116px) */}
       <BottomDrawer />

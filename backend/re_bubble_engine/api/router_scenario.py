@@ -101,6 +101,27 @@ async def get_scenario_report(data: Dict[str, Any]):
         )
         
     try:
+        # Fetch factual metropolitan metadata if available
+        region = data.get('region', 'National')
+        async with AsyncSessionLocal() as session:
+            from storage.models.bubble_flags import BubbleFlag # Late import
+            flag_result = await session.execute(
+                select(BubbleFlag)
+                .where(BubbleFlag.region.ilike(region))
+                .order_by(BubbleFlag.created_at.desc())
+                .limit(1)
+            )
+            flag = flag_result.scalar_one_or_none()
+            
+            if flag:
+                data['factual_metrics'] = {
+                    "overall_score": flag.overall_score,
+                    "price_income": flag.price_income_ratio,
+                    "price_rent": flag.price_rent_ratio,
+                    "residex": flag.residex_score,
+                    "last_updated": flag.created_at.strftime("%Y-%m-%d") if flag.created_at else "N/A"
+                }
+        
         pdf_bytes = generate_simulation_report(data)
         
         return Response(

@@ -31,3 +31,8 @@ venv/
 ENV/
 .env
 *.log
+
+# Log and report files
+backend/re_bubble_engine/server_log.txt
+backend/re_bubble_engine/verification_report.pdf
+

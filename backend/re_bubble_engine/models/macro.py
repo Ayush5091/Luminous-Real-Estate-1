@@ -25,6 +25,10 @@ class MacroSnapshot(BaseModel):
     nhb_residex_delhi: Optional[float] = None
     nhb_residex_bangalore: Optional[float] = None
     nhb_residex_chennai: Optional[float] = None
+    nhb_residex_hyderabad: Optional[float] = None
+    nhb_residex_kolkata: Optional[float] = None
+    nhb_residex_pune: Optional[float] = None
+    nhb_residex_ahmedabad: Optional[float] = None
     
     # Computed
     median_home_price_inr: Optional[float] = None

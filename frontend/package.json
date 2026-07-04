@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
+    "start": "node scripts/keep-alive.js & next start",
     "lint": "eslint"
   },
   "dependencies": {
@@ -13,10 +13,12 @@
     "@deepgram/sdk": "^5.0.0",
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.5.0",
+    "@types/d3": "^7.4.3",
     "@types/mapbox-gl": "^3.4.1",
     "@types/three": "^0.183.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "d3": "^7.9.0",
     "framer-motion": "^12.38.0",
     "jspdf": "^4.2.1",
     "jspdf-autotable": "^5.0.7",

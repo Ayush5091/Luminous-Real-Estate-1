@@ -55,10 +55,10 @@ def generate_simulation_report(data: dict) -> bytes:
     
     pdf.set_font('helvetica', '', 10)
     metrics = [
-        ('Median Projected Value (P50)', f'INR {data.get("p50", 0):,.2f}'),
-        ('Lower Bound (P5)', f'INR {data.get("p5", 0):,.2f}'),
-        ('Upper Bound (P95)', f'INR {data.get("p95", 0):,.2f}'),
-        ('Probability of Impairment', f'{(data.get("prob_loss", 0) * 100):.2f}%'),
+        ('Base Case (Expected Value)', f'INR {data.get("p50", 0):,.2f}'),
+        ('Worst Case (Market Correction)', f'INR {data.get("p5", 0):,.2f}'),
+        ('Best Case (Optimistic)', f'INR {data.get("p95", 0):,.2f}'),
+        ('Investment Safety Margin', f"{((1 - data.get('prob_loss', 0)) * 100):.2f}%"),
     ]
     
     for label, val in metrics:

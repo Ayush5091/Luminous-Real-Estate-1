@@ -40,15 +40,25 @@ async def get_risk_scores():
 
 @router.get("/risk/bubble-flags")
 async def get_bubble_flags():
+    """Returns the latest bubble flag record for each unique region (deduplicated)."""
     async with AsyncSessionLocal() as session:
         result = await session.execute(
             select(BubbleFlag)
             .where(BubbleFlag.is_active == True)
             .order_by(BubbleFlag.created_at.desc())
-            .limit(20)
+            .limit(100)
         )
         rows = result.scalars().all()
-    return [_flag_to_dict(r) for r in rows]
+
+    # Deduplicate: keep only the latest row per region
+    seen: set[str] = set()
+    unique: list[BubbleFlag] = []
+    for row in rows:
+        if row.region not in seen:
+            seen.add(row.region)
+            unique.append(row)
+
+    return [_flag_to_dict(r) for r in unique]
 
 
 @router.get("/risk/scores/history")

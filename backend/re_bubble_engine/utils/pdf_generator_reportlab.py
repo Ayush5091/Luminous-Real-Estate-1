@@ -73,30 +73,56 @@ def generate_simulation_report(data):
     elements.append(t)
     elements.append(Spacer(1, 0.4*inch))
     
-    # 3. Monte Carlo Output
-    elements.append(Paragraph("2. PROBABILISTIC OUTCOMES", header_style))
-    elements.append(Paragraph("10,000 Iterations across bifurcated risk variables.", body_style))
+    # 3. Market Scenario Projections
+    elements.append(Paragraph("2. SCENARIO PROJECTIONS (STOCHASTIC ANALYSIS)", header_style))
+    elements.append(Paragraph("Projected asset performance across 10,000 stochastic paths based on input shocks.", body_style))
     elements.append(Spacer(1, 0.1*inch))
     
+    factual = data.get('factual_metrics', {})
+    prob_loss = data.get('prob_loss', 0)
+    
+    # Intuitive Scenario Mapping
     mc_data = [
-        ["Confidence Level / Metric", "Projected Value"],
-        ["Median Projected Value (P50)", f"INR {data.get('p50', 0):,.2f}"],
-        ["Lower Bound (P5)", f"INR {data.get('p5', 0):,.2f}"],
-        ["Upper Bound (P95)", f"INR {data.get('p95', 0):,.2f}"],
-        ["Probability of Impairment", f"{(data.get('prob_loss', 0) * 100):.2f}%"],
+        ["Scenario / Metric", "Factual Status / Projected Forecast"],
+        ["Base Case (Expected Value)", f"INR {data.get('p50', 0):,.2f}"],
+        ["Best Case (Upper Limit)", f"INR {data.get('p95', 0):,.2f}"],
+        ["Worst Case (Lower Limit)", f"INR {data.get('p5', 0):,.2f}"],
+        ["Investment Safety Margin", f"{((1 - prob_loss) * 100):.1f}%"],
     ]
     
+    # Factual Context Add-on
+    context_data = [
+        ["Metropolitan Fact", "Current Status"],
+        ["Regional Risk Score", f"{factual.get('overall_score', 'N/A')}/100"],
+        ["NHB Residex Trend", f"{factual.get('residex', 'N/A')}"],
+        ["Affordability (P/I Ratio)", f"{factual.get('price_income', 'N/A') if factual.get('price_income') else 'N/A'}x"],
+    ]
+
+    # Render Projections Table
     t2 = Table(mc_data, colWidths=[2.5*inch, 3*inch])
     t2.setStyle(TableStyle([
         ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#10381A")),
         ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
         ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
         ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
         ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
         ('FONTSIZE', (0, 0), (-1, -1), 10),
     ]))
     elements.append(t2)
+    elements.append(Spacer(1, 0.4*inch))
+
+    # Render Factual Context Table
+    elements.append(Paragraph("3. METROPOLITAN CONTEXT (FACTUAL BASELINES)", header_style))
+    t3 = Table(context_data, colWidths=[2.5*inch, 3*inch])
+    t3.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#F1F5F9")),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.HexColor("#10381A")),
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+        ('FONTSIZE', (0, 0), (-1, -1), 10),
+    ]))
+    elements.append(t3)
     elements.append(Spacer(1, 0.4*inch))
     
     # 4. Narrative Analysis

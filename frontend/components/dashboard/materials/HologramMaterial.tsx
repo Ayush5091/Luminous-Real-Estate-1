@@ -1,5 +1,6 @@
 'use client'
 
+import React from 'react'
 import * as THREE from 'three'
 import { shaderMaterial } from '@react-three/drei'
 import { extend } from '@react-three/fiber'
@@ -64,5 +65,11 @@ const HologramMaterialImpl = shaderMaterial(
 extend({ HologramMaterialImpl })
 
 export const HologramMaterial = (props: any) => {
-  return <hologramMaterialImpl attach="material" transparent depthWrite={false} {...props} />
+  return React.createElement('hologramMaterialImpl', {
+    attach: "material",
+    transparent: true,
+    depthWrite: false,
+    ...props
+  })
 }
+
