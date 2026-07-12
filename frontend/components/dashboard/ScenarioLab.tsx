@@ -35,7 +35,7 @@ const ScenarioLab = () => {
     const cityBaseLakh = activeRegion === 'Mumbai' ? 120 : activeRegion === 'Delhi' ? 95 : 65;
 
     try {
-      const data = await api('/api/scenario/run', {
+      const data = await api<any>('/api/scenario/run', {
         method: 'POST',
         body: JSON.stringify({
           ...params,

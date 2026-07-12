@@ -57,6 +57,14 @@ interface DashboardState {
   setActiveRegion: (region: string) => void
   mapTarget: { lng: number; lat: number; zoom?: number } | null
   flyToLocation: (lng: number, lat: number, zoom?: number, region?: string) => void
+
+  // Map presentation controls (driven by MapToolbar)
+  mapMode: 'candy' | 'xray'
+  setMapMode: (mode: 'candy' | 'xray') => void
+  lighting: 'day' | 'dusk'
+  setLighting: (mode: 'day' | 'dusk') => void
+  orbitEnabled: boolean
+  setOrbitEnabled: (on: boolean) => void
   
   // Backend health
   backendStatus: BackendStatus
@@ -128,6 +136,14 @@ export const useStore = create<DashboardState>((set) => ({
   setActiveRegion: (region) => set({ activeRegion: region }),
   mapTarget: null,
   flyToLocation: (lng, lat, zoom, region) => set({ mapTarget: { lng, lat, zoom }, ...(region ? { activeRegion: region } : {}) }),
+
+  // Map presentation controls
+  mapMode: 'candy',
+  setMapMode: (mode) => set({ mapMode: mode }),
+  lighting: 'day',
+  setLighting: (mode) => set({ lighting: mode }),
+  orbitEnabled: true,
+  setOrbitEnabled: (on) => set({ orbitEnabled: on }),
   setValuation: (id, data) => set((state) => ({
     valuationMap: {
       ...state.valuationMap,

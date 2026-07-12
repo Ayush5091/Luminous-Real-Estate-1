@@ -13,6 +13,7 @@ import DataPipelineSidebar from '@/components/dashboard/DataPipelineSidebar'
 import ZoneInsights from '@/components/dashboard/ZoneInsights'
 import LocationsPanel from '@/components/dashboard/LocationsPanel'
 import OnboardingCards from '@/components/dashboard/OnboardingCards'
+import MapToolbar from '@/components/dashboard/MapToolbar'
 import { CITIES } from '@/lib/cityData'
 
 const HUD = () => {
@@ -30,6 +31,7 @@ const HUD = () => {
     setIsAssistantOpen,
     isPipelineOpen,
     setIsOnboardingOpen,
+    mapMode,
   } = useStore()
 
   const statusColor =
@@ -189,27 +191,48 @@ const HUD = () => {
         </motion.header>
       )}
 
-      {/* ===== MAP LEGEND ===== */}
+      {/* ===== MAP LEGEND (follows the active building-color mode) ===== */}
       <div className="hidden md:flex fixed left-8 bottom-36 flex-col gap-2.5 glass-panel rounded-3xl px-4 py-3.5 pointer-events-auto">
-        <span className="font-headline text-[9px] font-bold tracking-[0.2em] uppercase text-ink/50">
-          Building height
-        </span>
-        <div className="w-44 h-2.5 rounded-full border border-ink/15"
-          style={{ background: 'linear-gradient(90deg, #ffd97a, #ffb35c, #f2699c, #8f6bf5)' }}
-        />
-        <div className="flex justify-between font-headline text-[8px] font-bold uppercase tracking-wider text-ink/40">
-          <span>Low-rise</span>
-          <span>Tower</span>
-        </div>
+        {mapMode === 'xray' ? (
+          <>
+            <span className="font-headline text-[9px] font-bold tracking-[0.2em] uppercase text-ink/50">
+              Risk x-ray · building colors
+            </span>
+            <div className="flex items-center gap-3">
+              {([['#2fbf71', 'Stable'], ['#ffab2e', 'Watch'], ['#ff5050', 'At risk'], ['#ddd7e4', 'No data']] as const).map(([c, label]) => (
+                <span key={label} className="flex items-center gap-1.5 font-headline text-[8px] font-bold uppercase tracking-wider text-ink/60">
+                  <span className="w-2.5 h-2.5 rounded-[4px] border border-ink/25" style={{ background: c }} />
+                  {label}
+                </span>
+              ))}
+            </div>
+          </>
+        ) : (
+          <>
+            <span className="font-headline text-[9px] font-bold tracking-[0.2em] uppercase text-ink/50">
+              Building height
+            </span>
+            <div className="w-44 h-2.5 rounded-full border border-ink/15"
+              style={{ background: 'linear-gradient(90deg, #ffd97a, #ffb35c, #f2699c, #8f6bf5)' }}
+            />
+            <div className="flex justify-between font-headline text-[8px] font-bold uppercase tracking-wider text-ink/40">
+              <span>Low-rise</span>
+              <span>Tower</span>
+            </div>
+          </>
+        )}
         <div className="flex items-center gap-3 pt-1 border-t border-ink/10">
           {([['#2fbf71', 'Safe'], ['#ffab2e', 'Watch'], ['#ff5050', 'At risk']] as const).map(([c, label]) => (
             <span key={label} className="flex items-center gap-1.5 font-headline text-[8px] font-bold uppercase tracking-wider text-ink/60">
               <span className="w-2 h-2 rounded-full border border-ink/25" style={{ background: c }} />
-              {label}
+              {label} city
             </span>
           ))}
         </div>
       </div>
+
+      {/* ===== MAP TOOLBAR (overview · x-ray · dusk · orbit) ===== */}
+      <MapToolbar />
 
       {/* ===== PANELS ===== */}
       <PropertyPanel isOpen={!!selectedAssetId} onClose={() => setSelectedAssetId(null)} />
