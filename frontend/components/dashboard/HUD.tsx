@@ -2,15 +2,17 @@
 
 import React from 'react'
 import { motion } from 'framer-motion'
-import { Zap, MapPin } from 'lucide-react'
+import { Zap, MapPin, Sparkles, HelpCircle } from 'lucide-react'
 import { useStore } from '@/store/useStore'
 import BottomDrawer from '@/components/dashboard/BottomDrawer'
 import PropertyPanel from '@/components/dashboard/PropertyPanel'
 import ScenarioLab from '@/components/dashboard/ScenarioLab'
+import AtlasAssistant from '@/components/dashboard/AtlasAssistant'
 import PropagationHUD from '@/components/dashboard/PropagationHUD'
 import DataPipelineSidebar from '@/components/dashboard/DataPipelineSidebar'
 import ZoneInsights from '@/components/dashboard/ZoneInsights'
 import LocationsPanel from '@/components/dashboard/LocationsPanel'
+import OnboardingCards from '@/components/dashboard/OnboardingCards'
 import { CITIES } from '@/lib/cityData'
 
 const HUD = () => {
@@ -24,37 +26,49 @@ const HUD = () => {
     setIsScenarioLabOpen,
     isLocationsOpen,
     setIsLocationsOpen,
+    isAssistantOpen,
+    setIsAssistantOpen,
     isPipelineOpen,
+    setIsOnboardingOpen,
   } = useStore()
+
+  const statusColor =
+    backendStatus === 'connected' ? 'bg-mint' : backendStatus === 'loading' ? 'bg-gold' : 'bg-coral'
+  const statusLabel =
+    backendStatus === 'connected' ? 'Live' : backendStatus === 'loading' ? 'Connecting' : 'Offline'
 
   return (
     <div className="fixed inset-0 pointer-events-none z-50 flex flex-col font-body">
-      {/* TOP NAVIGATION PILL (responsive) */}
-      <nav className="fixed top-0 left-0 right-0 flex justify-center py-3 sm:py-6 px-3">
+      {/* ===== TOP NAVIGATION — glass, two tiers on mobile ===== */}
+      <nav className="fixed top-0 inset-x-0 flex flex-col items-center gap-2 pt-3 sm:pt-5 px-3">
+        {/* Tier 1: brand · cities (desktop) · status · actions */}
         <motion.div
           initial={{ y: -60, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          className="nav-pill flex items-center gap-3 sm:gap-6 pointer-events-auto max-w-[calc(100vw-24px)]"
+          className="glass-pill flex items-center justify-between sm:justify-start gap-1.5 sm:gap-3 md:gap-5 pointer-events-auto w-full max-w-[calc(100vw-24px)] sm:w-auto pl-3 pr-1.5 py-1.5 sm:pl-4 sm:pr-2 sm:py-2"
         >
-          <div className="flex items-center gap-1.5 shrink-0">
-            <span className="w-2.5 h-2.5 rounded-full bg-coral" />
-            <span className="w-2.5 h-2.5 rounded-full bg-gold" />
-            <span className="w-2.5 h-2.5 rounded-full bg-violet" />
-            <span className="text-base sm:text-lg font-bold tracking-tighter text-ink font-headline ml-1.5">
-              LUMINOUS <span className="hidden sm:inline font-light opacity-50 text-[10px]">ATLAS</span>
+          {/* Brand */}
+          <div className="flex items-center gap-2 shrink-0 min-w-0">
+            <div className="hidden sm:flex items-center gap-1">
+              <span className="w-2 h-2 rounded-full bg-coral" />
+              <span className="w-2 h-2 rounded-full bg-gold" />
+              <span className="w-2 h-2 rounded-full bg-violet" />
+            </div>
+            <span className="text-[13px] sm:text-base font-bold tracking-tighter text-ink font-headline">
+              LUMINOUS<span className="hidden sm:inline font-light text-ink/40 text-[10px] ml-1.5 tracking-[0.2em]">ATLAS</span>
             </span>
           </div>
 
-          {/* City selector — horizontally scrollable on small screens */}
-          <div className="flex gap-1 sm:gap-1.5 overflow-x-auto no-scrollbar min-w-0">
+          {/* City selector — desktop only; mobile gets its own tier below */}
+          <div className="hidden md:flex items-center gap-1 border-l border-ink/10 pl-4">
             {CITIES.map((city) => (
               <button
                 key={city.label}
                 onClick={() => flyToLocation(city.lng, city.lat, 16.5, city.label)}
-                className={`font-headline text-[10px] font-bold tracking-[0.1em] uppercase transition-all px-3 py-1.5 rounded-full whitespace-nowrap shrink-0 ${
+                className={`font-headline text-[10.5px] font-bold tracking-wide uppercase transition-all px-3 py-1.5 rounded-full whitespace-nowrap ${
                   activeRegion === city.label
-                    ? 'bg-ink text-gold'
-                    : 'text-ink/40 hover:text-ink hover:bg-ink/5'
+                    ? 'bg-ink text-gold shadow-md shadow-ink/25'
+                    : 'text-ink/55 hover:text-ink hover:bg-ink/5'
                 }`}
               >
                 {city.label}
@@ -62,47 +76,96 @@ const HUD = () => {
             ))}
           </div>
 
-          <div className="flex items-center gap-2 sm:gap-3 sm:pl-4 sm:border-l border-ink/10 shrink-0">
-            {/* Live backend status indicator */}
-            <div className={`w-2 h-2 rounded-full ${
-              backendStatus === 'connected' ? 'bg-mint animate-pulse'
-              : backendStatus === 'loading' ? 'bg-gold animate-pulse'
-              : 'bg-coral'
-            }`} />
-            <div className="hidden md:block bg-ink/5 text-ink px-3.5 py-1 rounded-full text-[9px] font-bold font-headline tracking-tight border border-ink/10">
-              {backendStatus === 'connected' ? 'ENGINE LIVE' : backendStatus === 'loading' ? 'CONNECTING...' : 'OFFLINE'}
+          {/* Status + actions */}
+          <div className="flex items-center gap-1 sm:gap-2 md:border-l border-ink/10 md:pl-4 shrink-0">
+            {/* Engine status — dot only on phones, labeled from sm up */}
+            <div className="flex items-center gap-1.5 bg-ink/5 border border-ink/10 rounded-full p-2 sm:px-2.5 sm:py-1.5" title={statusLabel}>
+              <span className={`w-1.5 h-1.5 rounded-full ${statusColor} ${backendStatus !== 'error' ? 'animate-pulse' : ''}`} />
+              <span className="hidden sm:inline text-[9px] font-bold font-headline uppercase tracking-wider text-ink/70">
+                {statusLabel}
+              </span>
             </div>
 
-            {/* Locations & Estimates toggle */}
+            {/* Replay the intro cards */}
+            <button
+              onClick={() => setIsOnboardingOpen(true)}
+              title="How this works"
+              aria-label="Show the intro guide"
+              className="p-1.5 rounded-full text-ink/40 hover:text-ink hover:bg-ink/5 transition-colors"
+            >
+              <HelpCircle size={15} />
+            </button>
+
+            {/* Locations */}
             <button
               onClick={() => setIsLocationsOpen(!isLocationsOpen)}
               title="Locations & cost estimates"
-              className={`p-2 rounded-full border-2 transition-all ${
+              className={`flex items-center gap-1.5 rounded-full px-2 sm:px-3 py-1.5 transition-all border ${
                 isLocationsOpen
-                ? 'bg-ink border-ink text-gold'
-                : 'bg-white border-ink/15 text-ink hover:border-ink/40'
+                  ? 'bg-ink border-ink text-gold shadow-md shadow-ink/25'
+                  : 'bg-white/70 border-ink/12 text-ink/70 hover:text-ink hover:bg-white'
               }`}
             >
-              <MapPin size={14} fill={isLocationsOpen ? 'currentColor' : 'none'} />
+              <MapPin size={13} />
+              <span className="hidden lg:inline text-[9px] font-bold font-headline uppercase tracking-wider">Cities</span>
             </button>
 
-            {/* Scenario Lab toggle */}
+            {/* Scenario Lab */}
             <button
               onClick={() => setIsScenarioLabOpen(!isScenarioLabOpen)}
-              title="Scenario Lab"
-              className={`p-2 rounded-full border-2 transition-all ${
+              title="Scenario Lab — Monte Carlo stress test"
+              className={`flex items-center gap-1.5 rounded-full px-2 sm:px-3 py-1.5 transition-all border ${
                 isScenarioLabOpen
-                ? 'bg-ink border-ink text-gold'
-                : 'bg-white border-ink/15 text-ink hover:border-ink/40'
+                  ? 'bg-ink border-ink text-gold shadow-md shadow-ink/25'
+                  : 'bg-white/70 border-ink/12 text-ink/70 hover:text-ink hover:bg-white'
               }`}
             >
-              <Zap size={14} fill={isScenarioLabOpen ? 'currentColor' : 'none'} />
+              <Zap size={13} />
+              <span className="hidden lg:inline text-[9px] font-bold font-headline uppercase tracking-wider">Lab</span>
             </button>
+
+            {/* Atlas AI — the hero action, always labeled */}
+            <button
+              onClick={() => setIsAssistantOpen(!isAssistantOpen)}
+              title="Ask Atlas AI"
+              className={`flex items-center gap-1 sm:gap-1.5 rounded-full px-2.5 sm:px-3.5 py-1.5 transition-all text-white shadow-lg shrink-0 ${
+                isAssistantOpen
+                  ? 'bg-ink shadow-ink/30'
+                  : 'ai-gradient shadow-violet/35 hover:brightness-110 hover:-translate-y-px'
+              }`}
+            >
+              <Sparkles size={13} />
+              <span className="text-[9px] sm:text-[10px] font-bold font-headline uppercase tracking-wider whitespace-nowrap">Ask AI</span>
+            </button>
+          </div>
+        </motion.div>
+
+        {/* Tier 2 (mobile only): scrollable city chips */}
+        <motion.div
+          initial={{ y: -40, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.08 }}
+          className="md:hidden glass-pill pointer-events-auto w-full max-w-[calc(100vw-24px)] sm:w-auto px-2 py-1.5"
+        >
+          <div className="flex gap-1 overflow-x-auto no-scrollbar fade-x">
+            {CITIES.map((city) => (
+              <button
+                key={city.label}
+                onClick={() => flyToLocation(city.lng, city.lat, 16.5, city.label)}
+                className={`font-headline text-[10px] font-bold tracking-wide uppercase transition-all px-3 py-1.5 rounded-full whitespace-nowrap shrink-0 ${
+                  activeRegion === city.label
+                    ? 'bg-ink text-gold shadow-md shadow-ink/25'
+                    : 'text-ink/55 hover:text-ink'
+                }`}
+              >
+                {city.label}
+              </button>
+            ))}
           </div>
         </motion.div>
       </nav>
 
-      {/* BIG ATLAS HEADLINE — the levels.fyi title block */}
+      {/* ===== BIG ATLAS HEADLINE ===== */}
       {!isPipelineOpen && (
         <motion.header
           key={activeRegion}
@@ -126,12 +189,12 @@ const HUD = () => {
         </motion.header>
       )}
 
-      {/* MAP LEGEND — building color ramp + risk dots */}
-      <div className="hidden md:flex fixed left-8 bottom-36 flex-col gap-2.5 atlas-card px-4 py-3.5 pointer-events-auto">
+      {/* ===== MAP LEGEND ===== */}
+      <div className="hidden md:flex fixed left-8 bottom-36 flex-col gap-2.5 glass-panel rounded-3xl px-4 py-3.5 pointer-events-auto">
         <span className="font-headline text-[9px] font-bold tracking-[0.2em] uppercase text-ink/50">
           Building height
         </span>
-        <div className="w-44 h-2.5 rounded-full border border-ink/20"
+        <div className="w-44 h-2.5 rounded-full border border-ink/15"
           style={{ background: 'linear-gradient(90deg, #ffd97a, #ffb35c, #f2699c, #8f6bf5)' }}
         />
         <div className="flex justify-between font-headline text-[8px] font-bold uppercase tracking-wider text-ink/40">
@@ -141,36 +204,27 @@ const HUD = () => {
         <div className="flex items-center gap-3 pt-1 border-t border-ink/10">
           {([['#2fbf71', 'Safe'], ['#ffab2e', 'Watch'], ['#ff5050', 'At risk']] as const).map(([c, label]) => (
             <span key={label} className="flex items-center gap-1.5 font-headline text-[8px] font-bold uppercase tracking-wider text-ink/60">
-              <span className="w-2 h-2 rounded-full border border-ink/30" style={{ background: c }} />
+              <span className="w-2 h-2 rounded-full border border-ink/25" style={{ background: c }} />
               {label}
             </span>
           ))}
         </div>
       </div>
 
-      {/* RIGHT PROPERTY PANEL */}
+      {/* ===== PANELS ===== */}
       <PropertyPanel isOpen={!!selectedAssetId} onClose={() => setSelectedAssetId(null)} />
-
-      {/* SCENARIO LAB PANEL */}
       <ScenarioLab />
-
-      {/* LOCATIONS & ESTIMATES PANEL */}
+      <AtlasAssistant />
       <LocationsPanel />
-
-      {/* PROPAGATION TRACE (TERMINAL HUD) */}
       <PropagationHUD />
-
-      {/* DATA INGESTION PIPELINE (LEFT) */}
       <DataPipelineSidebar />
-
-      {/* ZONE INSIGHTS SIDEBAR (RIGHT) */}
       <ZoneInsights />
-
-      {/* BOTTOM DRAWER */}
       <BottomDrawer />
+
+      {/* FIRST-RUN SPLASH CARDS (also via the ? button) */}
+      <OnboardingCards />
     </div>
   )
 }
-
 
 export default HUD

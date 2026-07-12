@@ -67,28 +67,27 @@ const LocationsPanel = () => {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 24 }}
           transition={{ type: 'spring', damping: 26, stiffness: 220 }}
-          className="fixed z-[60] pointer-events-auto flex flex-col overflow-hidden
-                     bg-white/95 backdrop-blur-xl border-2 border-[#1e1b2e1f] shadow-[0_6px_0_rgba(30,27,46,0.08),0_24px_60px_rgba(30,27,46,0.18)]
-                     inset-x-3 bottom-3 top-auto max-h-[72vh] rounded-3xl
-                     sm:inset-x-auto sm:top-24 sm:right-6 sm:bottom-40 sm:w-[min(400px,92vw)]"
+          className="glass-panel fixed z-[60] pointer-events-auto flex flex-col overflow-hidden
+                     inset-x-3 bottom-3 top-auto max-h-[72vh] rounded-[26px]
+                     sm:inset-x-auto sm:top-24 sm:right-6 sm:bottom-32 sm:w-[min(400px,92vw)] sm:rounded-[28px]"
         >
           {/* HEADER */}
-          <div className="p-5 border-b border-[#1e1b2e10] flex items-center justify-between bg-[#1e1b2e05] shrink-0">
+          <div className="glass-head px-5 py-4 flex items-center justify-between shrink-0">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-[#1e1b2e] text-[#ffc845]">
-                <MapPin size={18} />
+              <div className="p-2.5 rounded-2xl bg-ink text-gold shadow-lg shadow-ink/25">
+                <MapPin size={17} />
               </div>
               <div>
-                <h2 className="text-sm font-bold text-[#1e1b2e] font-headline uppercase tracking-tight">
+                <h2 className="text-[15px] font-bold text-ink font-headline tracking-tight leading-none">
                   Locations &amp; Estimates
                 </h2>
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-1.5 mt-1">
                   {anyLive ? (
-                    <Wifi size={11} className="text-emerald-500" />
+                    <Wifi size={11} className="text-mint" />
                   ) : (
-                    <WifiOff size={11} className="text-amber-500" />
+                    <WifiOff size={11} className="text-orange" />
                   )}
-                  <span className="text-[9px] font-medium text-slate-500 uppercase tracking-wider">
+                  <span className="text-[10px] font-semibold text-ink/50 tracking-wide">
                     {anyLive ? 'Live NHB RESIDEX feed' : 'Estimated · awaiting live feed'}
                   </span>
                 </div>
@@ -96,21 +95,21 @@ const LocationsPanel = () => {
             </div>
             <button
               onClick={() => setIsLocationsOpen(false)}
-              className="p-2 hover:bg-[#1e1b2e10] rounded-full transition-colors text-slate-400 hover:text-[#1e1b2e]"
+              className="p-2 rounded-full text-ink/45 hover:text-ink hover:bg-ink/5 transition-colors"
               aria-label="Close locations panel"
             >
-              <X size={20} />
+              <X size={19} />
             </button>
           </div>
 
           {/* SORT BAR */}
-          <div className="px-5 py-3 flex items-center justify-between border-b border-[#1e1b2e08] bg-white/60 shrink-0">
-            <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.15em]">
-              {rows.length} tracked cities · median home value
+          <div className="px-5 py-2.5 flex items-center justify-between border-b border-ink/8 shrink-0">
+            <span className="text-[9px] font-black text-ink/40 uppercase tracking-[0.15em] font-headline">
+              {rows.length} cities · median home value
             </span>
             <button
               onClick={cycleSort}
-              className="flex items-center gap-1.5 text-[9px] font-bold text-[#1e1b2e] uppercase tracking-wider bg-[#1e1b2e0a] hover:bg-[#1e1b2e15] px-2.5 py-1 rounded-full transition-colors"
+              className="flex items-center gap-1.5 text-[9px] font-bold text-ink uppercase tracking-wider bg-white/70 border border-ink/10 hover:bg-white px-2.5 py-1 rounded-full transition-colors font-headline"
             >
               <ArrowUpDown size={11} />
               {sortLabel}
@@ -128,31 +127,31 @@ const LocationsPanel = () => {
                   onClick={() => {
                     flyToLocation(city.lng, city.lat, 16.5, city.label)
                   }}
-                  className={`w-full text-left p-3.5 rounded-2xl border transition-all group ${
+                  className={`w-full text-left p-3.5 rounded-[18px] border transition-all group ${
                     isActive
-                      ? 'bg-[#1e1b2e08] border-[#1e1b2e30] ring-1 ring-[#1e1b2e20]'
-                      : 'bg-slate-50/60 border-black/5 hover:bg-[#1e1b2e05] hover:border-[#1e1b2e20]'
+                      ? 'bg-white/85 border-ink/25 shadow-md shadow-ink/8'
+                      : 'bg-white/45 border-ink/8 hover:bg-white/75 hover:border-ink/15'
                   }`}
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <div className="flex items-center gap-2">
-                        <span className="text-sm font-black text-slate-800 tracking-tight truncate">
+                        <span className="text-sm font-black text-ink tracking-tight truncate">
                           {city.label}
                         </span>
                         {live && (
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+                          <span className="w-1.5 h-1.5 rounded-full bg-mint animate-pulse shrink-0" />
                         )}
                       </div>
-                      <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">
+                      <span className="text-[9px] font-bold text-ink/35 uppercase tracking-widest">
                         {city.assetId}
                       </span>
                     </div>
                     <div className="text-right shrink-0">
-                      <div className="text-base font-black text-[#1e1b2e] tracking-tighter leading-none">
+                      <div className="text-base font-black text-ink tracking-tighter leading-none">
                         {fmtLakh(priceLakh)}
                       </div>
-                      <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">
+                      <span className="text-[8px] font-bold text-ink/35 uppercase tracking-widest">
                         est. median
                       </span>
                     </div>
@@ -163,7 +162,7 @@ const LocationsPanel = () => {
                     <Stat icon={<Building2 size={10} />} label="RESIDEX" value={residex.toFixed(1)} />
                     <Stat icon={<TrendingUp size={10} />} label="P/I" value={pi != null ? `${pi.toFixed(1)}x` : '—'} />
                     <div className="flex flex-col items-start">
-                      <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Risk</span>
+                      <span className="text-[8px] font-bold text-ink/40 uppercase tracking-widest">Risk</span>
                       <span
                         className={`mt-0.5 text-[10px] font-black px-1.5 py-0.5 rounded-md ${meta.bg} ${meta.text}`}
                       >
@@ -177,8 +176,8 @@ const LocationsPanel = () => {
           </div>
 
           {/* FOOTER NOTE */}
-          <div className="px-5 py-3 border-t border-[#1e1b2e08] bg-white/60 shrink-0">
-            <p className="text-[8px] leading-relaxed text-slate-400 font-medium">
+          <div className="px-5 py-3 border-t border-ink/8 shrink-0">
+            <p className="text-[8px] leading-relaxed text-ink/40 font-medium">
               Estimates derive median home value from NHB RESIDEX indices
               (index&nbsp;×&nbsp;0.48&nbsp;lakh). Live values stream from the engine; fallbacks
               are shown until the backend connects.
@@ -192,11 +191,11 @@ const LocationsPanel = () => {
 
 const Stat = ({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) => (
   <div className="flex flex-col items-start">
-    <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-0.5">
+    <span className="text-[8px] font-bold text-ink/40 uppercase tracking-widest flex items-center gap-0.5">
       {icon}
       {label}
     </span>
-    <span className="mt-0.5 text-[11px] font-black text-slate-700">{value}</span>
+    <span className="mt-0.5 text-[11px] font-black text-ink/80">{value}</span>
   </div>
 )
 

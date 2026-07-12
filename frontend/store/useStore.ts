@@ -36,6 +36,13 @@ export interface ChatMessage {
   id: string
   role: 'user' | 'assistant'
   content: string
+  /** Optional Monte-Carlo distribution attached to an assistant reply */
+  mc?: {
+    p5: number
+    p50: number
+    p95: number
+    prob_below_current: number
+  } | null
 }
 
 interface DashboardState {
@@ -88,6 +95,17 @@ interface DashboardState {
   isLocationsOpen: boolean
   setIsLocationsOpen: (open: boolean) => void
 
+  // First-run onboarding splash cards
+  isOnboardingOpen: boolean
+  setIsOnboardingOpen: (open: boolean) => void
+
+  // Atlas AI assistant (natural-language scenario window)
+  isAssistantOpen: boolean
+  setIsAssistantOpen: (open: boolean) => void
+  assistantMessages: ChatMessage[]
+  addAssistantMessage: (msg: ChatMessage) => void
+  clearAssistantMessages: () => void
+
   // New: Zone Selection
   selectedZone: ZoneData | null
   setSelectedZone: (zone: ZoneData | null) => void
@@ -102,7 +120,7 @@ export const useStore = create<DashboardState>((set) => ({
   selectedAssetId: null,
   // Opening the property panel closes the other right-hand panels
   setSelectedAssetId: (id) => set(id
-    ? { selectedAssetId: id, selectedZone: null, isScenarioLabOpen: false, isLocationsOpen: false }
+    ? { selectedAssetId: id, selectedZone: null, isScenarioLabOpen: false, isLocationsOpen: false, isAssistantOpen: false }
     : { selectedAssetId: null }),
 
   // Map navigation
@@ -141,7 +159,7 @@ export const useStore = create<DashboardState>((set) => ({
   setScenarioResult: (result) => set({ scenarioResult: result }),
   isScenarioLabOpen: false,
   setIsScenarioLabOpen: (open) => set(open
-    ? { isScenarioLabOpen: true, selectedAssetId: null, selectedZone: null, isLocationsOpen: false }
+    ? { isScenarioLabOpen: true, selectedAssetId: null, selectedZone: null, isLocationsOpen: false, isAssistantOpen: false }
     : { isScenarioLabOpen: false }),
 
   // Propagation Trace
@@ -158,13 +176,28 @@ export const useStore = create<DashboardState>((set) => ({
   // Locations & Estimates panel
   isLocationsOpen: false,
   setIsLocationsOpen: (open) => set(open
-    ? { isLocationsOpen: true, selectedAssetId: null, selectedZone: null, isScenarioLabOpen: false }
+    ? { isLocationsOpen: true, selectedAssetId: null, selectedZone: null, isScenarioLabOpen: false, isAssistantOpen: false }
     : { isLocationsOpen: false }),
+
+  // Onboarding — visibility is driven by OnboardingCards (first visit via
+  // localStorage) and the "?" help button in the nav.
+  isOnboardingOpen: false,
+  setIsOnboardingOpen: (open) => set({ isOnboardingOpen: open }),
+
+  // Atlas AI assistant — opening it closes the other right-hand panels;
+  // chat history lives in the store so it survives close/reopen.
+  isAssistantOpen: false,
+  setIsAssistantOpen: (open) => set(open
+    ? { isAssistantOpen: true, selectedAssetId: null, selectedZone: null, isScenarioLabOpen: false, isLocationsOpen: false }
+    : { isAssistantOpen: false }),
+  assistantMessages: [],
+  addAssistantMessage: (msg) => set((state) => ({ assistantMessages: [...state.assistantMessages, msg] })),
+  clearAssistantMessages: () => set({ assistantMessages: [] }),
 
   // Zone Selection — opening a zone closes the other right-hand panels
   selectedZone: null,
   setSelectedZone: (zone) => set(zone
-    ? { selectedZone: zone, selectedAssetId: null, isScenarioLabOpen: false, isLocationsOpen: false }
+    ? { selectedZone: zone, selectedAssetId: null, isScenarioLabOpen: false, isLocationsOpen: false, isAssistantOpen: false }
     : { selectedZone: null }),
 
   closeRightPanels: () => set({
@@ -172,5 +205,6 @@ export const useStore = create<DashboardState>((set) => ({
     selectedZone: null,
     isScenarioLabOpen: false,
     isLocationsOpen: false,
+    isAssistantOpen: false,
   }),
 }))

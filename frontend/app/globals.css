@@ -1,9 +1,9 @@
 @import "tailwindcss";
 
 /* ============================================================
-   LUMINOUS ATLAS — design system
-   Warm paper ground, ink typography, candy data colors.
-   Inspired by levels.fyi/atlas.
+   LUMINOUS ATLAS — design system v2
+   Warm paper ground, ink typography, candy data colors,
+   frosted-glass interface chrome floating over the map.
    ============================================================ */
 
 @theme {
@@ -73,12 +73,115 @@ body {
   text-orientation: mixed;
 }
 
-/* Chunky white card with ink border — the Atlas panel look */
+/* ============================================================
+   GLASS SYSTEM — the one visual language for every 2D panel
+   ============================================================ */
+
+/* Primary floating panel: warm frosted glass with a light rim */
+@utility glass-panel {
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.88) 0%,
+    rgba(255, 252, 244, 0.78) 55%,
+    rgba(255, 255, 255, 0.72) 100%
+  );
+  backdrop-filter: blur(28px) saturate(1.6);
+  -webkit-backdrop-filter: blur(28px) saturate(1.6);
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.9) inset,
+    0 0 0 1px rgba(30, 27, 46, 0.07),
+    0 12px 40px rgba(30, 27, 46, 0.16),
+    0 2px 10px rgba(30, 27, 46, 0.08);
+}
+
+/* Compact glass pill (nav, chips, floating buttons) */
+@utility glass-pill {
+  background: linear-gradient(
+    160deg,
+    rgba(255, 255, 255, 0.9),
+    rgba(255, 252, 244, 0.75)
+  );
+  backdrop-filter: blur(22px) saturate(1.5);
+  -webkit-backdrop-filter: blur(22px) saturate(1.5);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  border-radius: 9999px;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.95) inset,
+    0 0 0 1px rgba(30, 27, 46, 0.07),
+    0 8px 28px rgba(30, 27, 46, 0.14);
+}
+
+/* Dark frosted glass — terminals, traces, AI surfaces */
+@utility glass-dark {
+  background: linear-gradient(
+    150deg,
+    rgba(30, 27, 46, 0.92),
+    rgba(38, 33, 58, 0.86)
+  );
+  backdrop-filter: blur(24px) saturate(1.3);
+  -webkit-backdrop-filter: blur(24px) saturate(1.3);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.12) inset,
+    0 16px 48px rgba(30, 27, 46, 0.4);
+}
+
+/* Inner tile that sits on top of a glass panel */
+@utility glass-tile {
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(30, 27, 46, 0.08);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.8) inset;
+  border-radius: 18px;
+}
+
+/* Section header strip inside a glass panel */
+@utility glass-head {
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.55),
+    rgba(255, 255, 255, 0.15)
+  );
+  border-bottom: 1px solid rgba(30, 27, 46, 0.08);
+}
+
+/* AI accent gradient (violet → candy pink) */
+@utility ai-gradient {
+  background: linear-gradient(135deg, #7b61ff 0%, #a45cf0 55%, #f45ea9 100%);
+}
+
+/* Legacy aliases kept for map popups built imperatively */
 @utility atlas-card {
-  background: #ffffff;
-  border: 2px solid rgba(30, 27, 46, 0.12);
-  border-radius: 24px;
-  box-shadow: 0 6px 0 rgba(30, 27, 46, 0.08), 0 24px 60px rgba(30, 27, 46, 0.14);
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.9),
+    rgba(255, 252, 244, 0.78)
+  );
+  backdrop-filter: blur(24px) saturate(1.5);
+  -webkit-backdrop-filter: blur(24px) saturate(1.5);
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  border-radius: 22px;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.9) inset,
+    0 0 0 1px rgba(30, 27, 46, 0.07),
+    0 12px 36px rgba(30, 27, 46, 0.15);
+}
+
+.nav-pill {
+  background: linear-gradient(
+    160deg,
+    rgba(255, 255, 255, 0.9),
+    rgba(255, 252, 244, 0.75)
+  );
+  backdrop-filter: blur(22px) saturate(1.5);
+  -webkit-backdrop-filter: blur(22px) saturate(1.5);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  border-radius: 9999px;
+  padding: 0.5rem 1.1rem;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.95) inset,
+    0 0 0 1px rgba(30, 27, 46, 0.07),
+    0 8px 28px rgba(30, 27, 46, 0.14);
 }
 
 /* Thin ink scrollbar used by side panels */
@@ -97,13 +200,57 @@ body {
   background: rgba(30, 27, 46, 0.3);
 }
 
-/* Structural Components */
-.nav-pill {
-  background: #ffffff;
-  border: 2px solid rgba(30, 27, 46, 0.12);
+/* Horizontal chip row with soft fade at the clipped edges */
+.fade-x {
+  mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    black 14px,
+    black calc(100% - 14px),
+    transparent 100%
+  );
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    black 14px,
+    black calc(100% - 14px),
+    transparent 100%
+  );
+}
+
+/* Range sliders (Scenario Lab) */
+.atlas-range {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
   border-radius: 9999px;
-  padding: 0.55rem 1.4rem;
-  box-shadow: 0 4px 0 rgba(30, 27, 46, 0.08), 0 16px 40px rgba(30, 27, 46, 0.12);
+  background: linear-gradient(90deg, rgba(30, 27, 46, 0.12), rgba(30, 27, 46, 0.18));
+  outline: none;
+}
+.atlas-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #1e1b2e;
+  border: 3px solid #ffffff;
+  box-shadow: 0 2px 8px rgba(30, 27, 46, 0.35);
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+.atlas-range::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+}
+.atlas-range::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #1e1b2e;
+  border: 3px solid #ffffff;
+  box-shadow: 0 2px 8px rgba(30, 27, 46, 0.35);
+  cursor: pointer;
 }
 
 .metric-group {
@@ -112,7 +259,7 @@ body {
 }
 
 /* ============================================================
-   Map chrome — pill markers, popups, controls
+   Map chrome — pill markers, popups, controls (unchanged look)
    ============================================================ */
 
 /* City price pill markers (created imperatively in MapboxReality) */
@@ -162,14 +309,19 @@ body {
   display: none;
 }
 
-/* Navigation control — match the card look */
+/* Navigation control — match the glass look */
 .mapboxgl-ctrl-group {
   border-radius: 14px !important;
-  border: 2px solid rgba(30, 27, 46, 0.12) !important;
-  box-shadow: 0 4px 0 rgba(30, 27, 46, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.85) !important;
+  box-shadow:
+    0 0 0 1px rgba(30, 27, 46, 0.08),
+    0 6px 20px rgba(30, 27, 46, 0.14) !important;
   overflow: hidden;
+  backdrop-filter: blur(16px);
+  background: rgba(255, 255, 255, 0.8) !important;
 }
 .mapboxgl-ctrl-group button {
   width: 34px !important;
   height: 34px !important;
+  background: transparent !important;
 }
