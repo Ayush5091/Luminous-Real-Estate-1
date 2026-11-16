@@ -1,15 +1,13 @@
 'use client'
 
-import React, { useEffect, useState, useRef } from 'react'
+import React, { useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { 
   Database, 
-  Activity, 
   Clock, 
   Server, 
   ChevronLeft, 
   ChevronRight,
-  Terminal,
   RefreshCw,
   CheckCircle2,
   FileSpreadsheet
@@ -24,9 +22,6 @@ const DataPipelineSidebar = () => {
     backendStatus 
   } = useStore()
   
-  const [logs, setLogs] = useState<string[]>([])
-  const terminalEndRef = useRef<HTMLDivElement>(null)
-
   // On small screens the sidebar would cover the map, so start collapsed there.
   useEffect(() => {
     if (typeof window !== 'undefined' && window.innerWidth < 640) {
@@ -54,55 +49,6 @@ const DataPipelineSidebar = () => {
       hour12: true
     })
   }
-
-  // Pre-generate standard scraper pipeline logs
-  const staticLogs = [
-    `[INFO] Initializing Ingestion Coordinator...`,
-    `[INFO] Target Frequency: Every 3 Days (4320 mins).`,
-    `[DB] Connecting to TimescaleDB instance... Connected.`,
-    `[SCRAPER] Querying World Bank API for macro indexes...`,
-    ` - GDP Growth Rate: ${macroSnapshot?.gdp_growth ?? 7.2}% (OK)`,
-    ` - Unemployment Rate: ${macroSnapshot?.unemployment_rate ?? 4.1}% (OK)`,
-    ` - CPI Inflation (YoY): ${macroSnapshot?.cpi_yoy ?? 4.8}% (OK)`,
-    `[SCRAPER] Querying RBI DBIE for monetary rates...`,
-    ` - Repo Rate: ${macroSnapshot?.repo_rate ?? 6.5}% (OK)`,
-    ` - G-Sec 10Y Yield: ${macroSnapshot?.gsec_10y_yield ?? 7.1}% (OK)`,
-    ` - G-Sec 2Y Yield: ${macroSnapshot?.gsec_2y_yield ?? 6.8}% (OK)`,
-    `[SCRAPER] Scraping NHB RESIDEX portal...`,
-    ` - Composite HPI (50 cities): ${macroSnapshot?.nhb_residex_composite ?? 124.5} (OK)`,
-    `[CALCULATION] Starting intrinsic valuation models...`,
-    ` - Valuating Discounted Cash Flows (DCF)... Complete.`,
-    ` - Computing PIR, PRR, and Affordability index... Complete.`,
-    `[AGENT] LangGraph Orchestrator running city models...`,
-    ` - Mumbai, Delhi, Bangalore, Chennai, Pune, Ahmedabad (Updates Written)`,
-    `[CACHE] Invalidation successful. Redis geo:bubble_map refreshed.`,
-    `[INFO] Ingestion complete. Scraper sleeping. Next run in 72 hours.`
-  ]
-
-  // Simulate live terminal output
-  useEffect(() => {
-    if (isPipelineOpen) {
-      setLogs([])
-      let idx = 0
-      const timer = setInterval(() => {
-        if (idx < staticLogs.length) {
-          const timestamp = new Date().toLocaleTimeString('en-IN', { hour12: false })
-          setLogs(prev => [...prev, `[${timestamp}] ${staticLogs[idx]}`])
-          idx++
-        } else {
-          clearInterval(timer)
-        }
-      }, 500)
-      return () => clearInterval(timer)
-    }
-  }, [isPipelineOpen, macroSnapshot])
-
-  // Auto-scroll terminal
-  useEffect(() => {
-    if (terminalEndRef.current) {
-      terminalEndRef.current.scrollIntoView({ behavior: 'smooth' })
-    }
-  }, [logs])
 
   return (
     <>
@@ -206,21 +152,6 @@ const DataPipelineSidebar = () => {
               <span className="text-[10.5px] font-semibold text-ink/65">NHB Composite RESIDEX</span>
               <span className="text-[11.5px] font-extrabold text-ink">{macroSnapshot?.nhb_residex_composite ?? 124.5}</span>
             </div>
-          </div>
-        </div>
-
-        {/* LIVE TERMINAL SCRAPER LOGS */}
-        <div className="glass-dark flex-1 p-5 flex flex-col min-h-0 rounded-t-3xl">
-          <h3 className="text-[9px] font-black text-gold uppercase tracking-[0.15em] flex items-center gap-1.5 mb-3 font-mono">
-            <Terminal size={12} /> Scraper Console Output
-          </h3>
-          <div className="flex-1 bg-black/30 rounded-2xl p-4 font-mono text-[9px] text-[#7ee2a8] overflow-y-auto space-y-2 scrollbar-hide border border-white/10">
-            {logs.map((log, idx) => (
-              <div key={idx} className="leading-relaxed break-all">
-                {log}
-              </div>
-            ))}
-            <div ref={terminalEndRef} />
           </div>
         </div>
       </motion.div>
