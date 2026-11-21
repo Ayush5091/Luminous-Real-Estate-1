@@ -153,6 +153,3 @@ The backend exposes several API endpoints for interaction with the frontend and 
 
 "Luminous Real Estate" represents a sophisticated application of AI, data engineering, and modern web technologies to address a critical need in the Indian residential property market. By integrating diverse data sources, employing robust statistical models, and leveraging a multi-agent LLM system, it provides real-time, data-driven insights into bubble risk, offering a valuable tool for stakeholders in the real estate sector.
 
-## References
-
-[1] aadvt. (n.d.). *The_Vanished_30*. GitHub. Retrieved from [https://github.com/aadvt/The_Vanished_30](https://github.com/aadvt/The_Vanished_30)
